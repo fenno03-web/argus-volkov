@@ -14,6 +14,7 @@ export const S = $state({
   field: saved.field ?? 'auto',   // 'auto' | 'none' | field id
   fieldOpacity: saved.fieldOpacity ?? 0.85,
   mapStyle: saved.mapStyle || 'sat',
+  presetCorners: saved.presetCorners || {}, // preset id -> last aligned corners
   profile: saved.profile || { name: '', squad: '', role: 'rifleman' },
   session: saved.session || null, // { token, player_id, faction:{id,name,color}, game:{id,code,name,lat,lng} }
   // live (not persisted)
@@ -30,7 +31,7 @@ export const S = $state({
 export function persist() {
   try {
     localStorage.setItem(KEY, JSON.stringify({
-      lang: S.lang, night: S.night, speech: S.speech, eggs: S.eggs, field: S.field, fieldOpacity: S.fieldOpacity, mapStyle: S.mapStyle,
+      lang: S.lang, night: S.night, speech: S.speech, eggs: S.eggs, field: S.field, fieldOpacity: S.fieldOpacity, mapStyle: S.mapStyle, presetCorners: S.presetCorners,
       profile: S.profile, session: S.session
     }));
   } catch { /* storage unavailable */ }

@@ -32,3 +32,16 @@ export const MARKERS = [
 export const ALERTS = ['contact', 'help', 'rally', 'enemy_seen', 'obj_taken', 'fall_back', 'push', 'hold'];
 
 export const DRAW_COLORS = ['#e3b341', '#3fb950', '#58a6ff', '#ff4d4d', '#f0f6fc'];
+
+// Preset field maps (official Airsoft Vets maps, bundled so they also work offline).
+// img = overlay laid on the satellite map, plan = full sheet with legend for the viewer.
+// center/widthM are rough starting points; players align once and the app remembers it.
+export const FIELD_PRESETS = [
+  { id: 'trancentral', name: 'Trancentral', img: 'fields/trancentral.jpg', plan: 'fields/trancentral-plan.jpg', w: 1978, h: 479,
+    center: [5.4005, 50.6655], widthM: 650, place: 'Fexhe-le-Haut-Clocher' },
+  { id: 'wolfenstein', name: 'Wolfenstein', img: 'fields/wolfenstein.jpg', plan: 'fields/wolfenstein.jpg', w: 2048, h: 1449,
+    center: [5.8470, 50.4125], widthM: 260, place: 'Stoumont' },
+  { id: 'maze', name: 'The Maze II', img: 'fields/maze.jpg', plan: 'fields/maze.jpg', w: 2048, h: 1463,
+    center: null, widthM: 450, place: '' }
+];
+export const FIELD_CREDIT = 'Kaart © Airsoft Vets';

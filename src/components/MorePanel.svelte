@@ -3,10 +3,10 @@
   import { S, persist, toast } from '../lib/store.svelte.js';
   import { t, errText } from '../lib/i18n.js';
   import { leave, updateProfile, deleteEvent } from '../lib/api.js';
-  import { WEB_URL, ROLES, VERSION } from '../lib/config.js';
+  import { WEB_URL, ROLES, VERSION, FIELD_PRESETS } from '../lib/config.js';
   import Sheet from './Sheet.svelte';
-  import { currentField, uploadFieldImage } from '../lib/fields.js';
-  let { onclose, onreplay, onalign } = $props();
+  import { currentField, uploadFieldImage, presetById } from '../lib/fields.js';
+  let { onclose, onreplay, onalign, onplan } = $props();
   const field = $derived(currentField());
   let uploading = $state(false);
   async function pickField(e) {
@@ -78,7 +78,8 @@
       {#if field}
         <div class="row">
           <span class="grow muted small">{field.data.name || t('field_map')}</span>
-          <button onclick={() => onalign({ url: field.data.url, name: field.data.name, corners: field.data.corners })}>{t('field_align')}</button>
+          {#if presetById(field.data.preset)}<button onclick={() => onplan(presetById(field.data.preset))}>{t('field_view')}</button>{/if}
+          <button onclick={() => onalign({ url: field.data.url, preset: field.data.preset, name: field.data.name, corners: field.data.corners })}>{t('field_align')}</button>
           <button onclick={() => deleteEvent(field.id)}>{t('delete')}</button>
         </div>
         <label class="chk"><input type="checkbox" checked={S.field !== 'none'} onchange={(e) => set('field', e.currentTarget.checked ? 'auto' : 'none')} /> {t('field_show')}</label>
@@ -86,6 +87,16 @@
       {:else}
         <p class="muted small">{t('field_none_yet')}</p>
       {/if}
+      <div class="presets">
+        <span class="muted small">{t('field_presets')}</span>
+        {#each FIELD_PRESETS as p}
+          <div class="row">
+            <span class="grow">{p.name}{#if p.place}<span class="muted small"> · {p.place}</span>{/if}</span>
+            <button onclick={() => onplan(p)}>{t('field_view')}</button>
+            <button onclick={() => onalign({ preset: p.id, name: p.name, w: p.w, h: p.h })}>{t('field_on_map')}</button>
+          </div>
+        {/each}
+      </div>
       <label class="upl">{uploading ? t('uploading') : t('field_upload')}
         <input type="file" accept="image/*" onchange={pickField} disabled={uploading} hidden />
       </label>
@@ -114,6 +125,8 @@
   .fieldbox b { color: var(--gold); text-transform: uppercase; letter-spacing: .08em; font-size: 13px; }
   .fieldbox .row { margin-top: 8px; }
   .fieldbox .row button { padding: 8px 10px; font-size: 13px; }
+  .presets { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 8px; }
+  .presets .row { align-items: center; }
   .upl { display: block; text-align: center; margin: 10px 0 0; padding: 12px; border: 1px dashed var(--gold); border-radius: 10px; color: var(--gold);
     text-transform: none; letter-spacing: 0; font-size: 14px; cursor: pointer; }
 </style>

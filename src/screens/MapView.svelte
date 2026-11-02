@@ -9,7 +9,8 @@
   import { baseStyle, addOverlayLayers, circle, squadColor } from '../lib/mapstyle.js';
   import { MARKERS, DRAW_COLORS } from '../lib/config.js';
   import { isBoches, shellSvg } from '../lib/boches.js';
-  import { currentField, startCorners } from '../lib/fields.js';
+  import { currentField, startCorners, fieldUrl, presetById, cornersAt } from '../lib/fields.js';
+  import PlanViewer from '../components/PlanViewer.svelte';
   import TeamPanel from '../components/TeamPanel.svelte';
   import ChatPanel from '../components/ChatPanel.svelte';
   import AlertPanel from '../components/AlertPanel.svelte';
@@ -81,11 +82,14 @@
   let fieldKey = null;
   let align = $state(null);   // { url, name, w, h, corners } while aligning
   let handles = [];
+  let plan = $state(null);    // preset shown in the full-screen plan viewer
+  const curPreset = $derived(presetById(currentField()?.data?.preset));
   const shownField = $derived.by(() => {
     if (align) return { url: align.url, corners: align.corners };
     if (S.field === 'none') return null;
     const e = currentField();
-    return e?.data?.url && e.data.corners?.length === 4 ? { url: e.data.url, corners: e.data.corners } : null;
+    const url = fieldUrl(e?.data);
+    return url && e.data.corners?.length === 4 ? { url, corners: e.data.corners } : null;
   });
   $effect(() => {
     const f = shownField;
@@ -133,13 +137,27 @@
   }
   function beginAlign(a) {
     panel = null; mode = null; follow = false;
-    align = { ...a, corners: a.corners || startCorners(map, a.w || 1, a.h || 1) };
+    let corners = a.corners;
+    const p = a.preset && presetById(a.preset);
+    if (!corners && p) {
+      corners = S.presetCorners[p.id];
+      if (!corners) {
+        const c = map.getCenter();
+        const far = p.center && distM(c, { lng: p.center[0], lat: p.center[1] }) > 3000;
+        corners = cornersAt(far ? p.center : [c.lng, c.lat], p.widthM, p.w, p.h);
+      }
+      const xs = corners.map((c) => c[0]), ys = corners.map((c) => c[1]);
+      map.fitBounds([[Math.min(...xs), Math.min(...ys)], [Math.max(...xs), Math.max(...ys)]], { padding: { top: 120, bottom: 260, left: 40, right: 70 }, duration: 0 });
+    }
+    align = { ...a, url: a.url || p?.img, corners: corners || startCorners(map, a.w || 1, a.h || 1) };
     makeHandles();
   }
   async function saveAlign() {
     const a = align; clearHandles(); align = null;
     try {
-      await sendEvent('field', { url: a.url, name: a.name || null, corners: a.corners.map(([x, y]) => [+x.toFixed(7), +y.toFixed(7)]) });
+      const corners = a.corners.map(([x, y]) => [+x.toFixed(7), +y.toFixed(7)]);
+      await sendEvent('field', a.preset ? { preset: a.preset, name: a.name || null, corners } : { url: a.url, name: a.name || null, corners });
+      if (a.preset) S.presetCorners = { ...S.presetCorners, [a.preset]: corners };
       S.field = 'auto'; persist();
     } catch (er) { toast(errText(er), 'alert'); }
   }
@@ -377,6 +395,7 @@
     <button class:on={follow} onclick={centerMe} title={t('follow')}>◉</button>
     <button onclick={toggleStyle} title={t('map_style')}>{S.mapStyle === 'sat' ? '🗺' : '🛰'}</button>
     <button class:on={S.squadOnly} onclick={() => (S.squadOnly = !S.squadOnly)} title={t('squad_only')}>SQ</button>
+    {#if curPreset}<button onclick={() => (plan = curPreset)} title={t('field_view')}>▦</button>{/if}
   </div>
 
   {#if mode}
@@ -428,7 +447,8 @@
   {#if panel === 'team'}<TeamPanel onfly={flyTo} onclose={() => (panel = null)} />{/if}
   {#if panel === 'chat'}<ChatPanel onclose={() => (panel = null)} />{/if}
   {#if panel === 'alerts'}<AlertPanel onclose={() => (panel = null)} />{/if}
-  {#if panel === 'more'}<MorePanel onclose={() => (panel = null)} onreplay={() => (panel = 'replay')} onalign={beginAlign} />{/if}
+  {#if panel === 'more'}<MorePanel onclose={() => (panel = null)} onreplay={() => (panel = 'replay')} onalign={beginAlign} onplan={(p) => (plan = p)} />{/if}
+  {#if plan}<PlanViewer preset={plan} onclose={() => (plan = null)} />{/if}
   {#if panel === 'replay' && ready}<Replay {map} onclose={() => (panel = null)} />{/if}
   {#if panel === 'draw'}
     <div class="sheet">

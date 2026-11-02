@@ -37,7 +37,7 @@ const D = {
     is_hit: 'is geraakt', respawned: 'is terug in het spel',
     r_rifleman: 'Rifleman', r_leader: 'Leader', r_medic: 'Medic', r_sniper: 'Sniper', r_support: 'Support', r_scout: 'Scout', r_commander: 'Commander', r_pilot: 'Drone pilot',
     side: 'Kant', code: 'Code', game: 'Spel', version: 'Versie',
-    field_map: 'Veldkaart', field_show: 'Veldkaart tonen', opacity: 'Doorzichtigheid', field_upload: 'Plattegrond uploaden (foto of screenshot)', field_align: 'Uitlijnen', field_none_yet: 'Nog geen veldkaart voor jullie kant.', align_hint: 'Sleep de hoeken naar de juiste plek, ✥ verschuift alles', uploading: 'Uploaden...'
+    field_map: 'Veldkaart', field_show: 'Veldkaart tonen', opacity: 'Doorzichtigheid', field_upload: 'Plattegrond uploaden (foto of screenshot)', field_align: 'Uitlijnen', field_none_yet: 'Nog geen veldkaart voor jullie kant.', align_hint: 'Sleep de hoeken naar de juiste plek, ✥ verschuift alles', uploading: 'Uploaden...', field_view: 'Plattegrond', field_on_map: 'Op kaart', field_presets: 'Velden van Airsoft Vets', pinch_hint: 'knijp of scroll om te zoomen'
   },
   en: {
     tagline: 'Live team map for airsoft',
@@ -74,7 +74,7 @@ const D = {
     is_hit: 'is hit', respawned: 'is back in the game',
     r_rifleman: 'Rifleman', r_leader: 'Leader', r_medic: 'Medic', r_sniper: 'Sniper', r_support: 'Support', r_scout: 'Scout', r_commander: 'Commander', r_pilot: 'Drone pilot',
     side: 'Side', code: 'Code', game: 'Game', version: 'Version',
-    field_map: 'Field map', field_show: 'Show field map', opacity: 'Opacity', field_upload: 'Upload field map (photo or screenshot)', field_align: 'Align', field_none_yet: 'No field map for your side yet.', align_hint: 'Drag the corners into place, ✥ moves everything', uploading: 'Uploading...'
+    field_map: 'Field map', field_show: 'Show field map', opacity: 'Opacity', field_upload: 'Upload field map (photo or screenshot)', field_align: 'Align', field_none_yet: 'No field map for your side yet.', align_hint: 'Drag the corners into place, ✥ moves everything', uploading: 'Uploading...', field_view: 'Plan', field_on_map: 'On map', field_presets: 'Airsoft Vets fields', pinch_hint: 'pinch or scroll to zoom'
   }
 };
 

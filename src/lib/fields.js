@@ -2,6 +2,22 @@
 // shared with the faction as a 'field' event. Images go to the public storage bucket volkov-fields.
 import { sb } from './api.js';
 import { S } from './store.svelte.js';
+import { FIELD_PRESETS } from './config.js';
+
+export const presetById = (id) => FIELD_PRESETS.find((p) => p.id === id) || null;
+
+/** Image URL of a field event's data: bundled preset or uploaded image. */
+export function fieldUrl(d) {
+  const p = d?.preset && presetById(d.preset);
+  return p ? p.img : d?.url || null;
+}
+
+/** Corners for an image of w x h, widthM metres wide, centred on [lng, lat]. */
+export function cornersAt([lng, lat], widthM, w, h) {
+  const k = Math.cos((lat * Math.PI) / 180);
+  const halfW = widthM / 2 / (111320 * k), halfH = (widthM * (h / w)) / 2 / 110540;
+  return [[lng - halfW, lat + halfH], [lng + halfW, lat + halfH], [lng + halfW, lat - halfH], [lng - halfW, lat - halfH]];
+}
 
 /** Latest field map shared in this faction (or null). */
 export function currentField() {
