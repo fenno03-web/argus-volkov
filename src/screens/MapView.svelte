@@ -9,6 +9,7 @@
   import { baseStyle, addOverlayLayers, circle, squadColor } from '../lib/mapstyle.js';
   import { MARKERS, DRAW_COLORS } from '../lib/config.js';
   import { isBoches, shellSvg } from '../lib/boches.js';
+  import { currentField, startCorners } from '../lib/fields.js';
   import TeamPanel from '../components/TeamPanel.svelte';
   import ChatPanel from '../components/ChatPanel.svelte';
   import AlertPanel from '../components/AlertPanel.svelte';
@@ -75,6 +76,75 @@
     map.setLayoutProperty('sat', 'visibility', s === 'sat' ? 'visible' : 'none');
     map.setLayoutProperty('osm', 'visibility', s === 'osm' ? 'visible' : 'none');
   });
+
+  // ---------- field map overlay (plattegrond) ----------
+  let fieldKey = null;
+  let align = $state(null);   // { url, name, w, h, corners } while aligning
+  let handles = [];
+  const shownField = $derived.by(() => {
+    if (align) return { url: align.url, corners: align.corners };
+    if (S.field === 'none') return null;
+    const e = currentField();
+    return e?.data?.url && e.data.corners?.length === 4 ? { url: e.data.url, corners: e.data.corners } : null;
+  });
+  $effect(() => {
+    const f = shownField;
+    if (!ready) return;
+    const key = f ? f.url : null;
+    if (fieldKey && fieldKey !== key) {
+      if (map.getLayer('field')) map.removeLayer('field');
+      if (map.getSource('field')) map.removeSource('field');
+      fieldKey = null;
+    }
+    if (!f) return;
+    if (!fieldKey) {
+      map.addSource('field', { type: 'image', url: f.url, coordinates: f.corners });
+      map.addLayer({ id: 'field', type: 'raster', source: 'field', paint: { 'raster-opacity': S.fieldOpacity, 'raster-fade-duration': 0 } }, 'acc-fill');
+      fieldKey = key;
+    } else {
+      map.getSource('field')?.setCoordinates(f.corners);
+    }
+  });
+  $effect(() => {
+    const o = S.fieldOpacity;
+    if (ready && fieldKey && map.getLayer('field')) map.setPaintProperty('field', 'raster-opacity', o);
+  });
+
+  function clearHandles() { for (const h of handles) h.remove(); handles = []; }
+  function centerOf(cs) { return [cs.reduce((a, c) => a + c[0], 0) / 4, cs.reduce((a, c) => a + c[1], 0) / 4]; }
+  function makeHandles() {
+    clearHandles();
+    align.corners.forEach((c, i) => {
+      const el = document.createElement('div'); el.className = 'fhandle';
+      const m = new maplibregl.Marker({ element: el, draggable: true }).setLngLat(c).addTo(map);
+      m.on('drag', () => { const ll = m.getLngLat(); const cs = [...align.corners]; cs[i] = [ll.lng, ll.lat]; align.corners = cs; handles[4]?.setLngLat(centerOf(cs)); });
+      handles.push(m);
+    });
+    const el = document.createElement('div'); el.className = 'fhandle move'; el.textContent = '✥';
+    const mc = new maplibregl.Marker({ element: el, draggable: true }).setLngLat(centerOf(align.corners)).addTo(map);
+    let from = null, base = null;
+    mc.on('dragstart', () => { from = mc.getLngLat(); base = align.corners; });
+    mc.on('drag', () => {
+      const ll = mc.getLngLat(); const dx = ll.lng - from.lng, dy = ll.lat - from.lat;
+      const cs = base.map(([x, y]) => [x + dx, y + dy]); align.corners = cs;
+      cs.forEach((c, i) => handles[i].setLngLat(c));
+    });
+    handles.push(mc);
+  }
+  function beginAlign(a) {
+    panel = null; mode = null; follow = false;
+    align = { ...a, corners: a.corners || startCorners(map, a.w || 1, a.h || 1) };
+    makeHandles();
+  }
+  async function saveAlign() {
+    const a = align; clearHandles(); align = null;
+    try {
+      await sendEvent('field', { url: a.url, name: a.name || null, corners: a.corners.map(([x, y]) => [+x.toFixed(7), +y.toFixed(7)]) });
+      S.field = 'auto'; persist();
+    } catch (er) { toast(errText(er), 'alert'); }
+  }
+  function cancelAlign() { clearHandles(); align = null; }
+  onDestroy(clearHandles);
 
   // ---------- own position: accuracy circle + follow ----------
   $effect(() => {
@@ -331,6 +401,18 @@
     {/if}
   {/if}
 
+  {#if align}
+    <div class="modebar alignbar">
+      <span class="grow">{t('align_hint')}</span>
+      <button onclick={cancelAlign}>✕</button>
+      <button class="primary" onclick={saveAlign}>{t('save')}</button>
+    </div>
+    <div class="drawopts alignopts">
+      <span class="muted">{t('opacity')}</span>
+      <input type="range" min="0.2" max="1" step="0.05" bind:value={S.fieldOpacity} style="padding:0;accent-color:var(--gold)" />
+    </div>
+  {/if}
+
   {#if pending}
     <div class="sheet">
       <input bind:value={markerLabel} placeholder={t('label')} maxlength="40" />
@@ -346,7 +428,7 @@
   {#if panel === 'team'}<TeamPanel onfly={flyTo} onclose={() => (panel = null)} />{/if}
   {#if panel === 'chat'}<ChatPanel onclose={() => (panel = null)} />{/if}
   {#if panel === 'alerts'}<AlertPanel onclose={() => (panel = null)} />{/if}
-  {#if panel === 'more'}<MorePanel onclose={() => (panel = null)} onreplay={() => (panel = 'replay')} />{/if}
+  {#if panel === 'more'}<MorePanel onclose={() => (panel = null)} onreplay={() => (panel = 'replay')} onalign={beginAlign} />{/if}
   {#if panel === 'replay' && ready}<Replay {map} onclose={() => (panel = null)} />{/if}
   {#if panel === 'draw'}
     <div class="sheet">
@@ -401,6 +483,8 @@
   .drawopts { position: absolute; left: 10px; right: 10px; bottom: calc(var(--safe-bottom) + 140px); display: flex; gap: 8px; align-items: center;
     background: #141816ee; border: 1px solid var(--line); border-radius: 12px; padding: 8px; }
   .drawopts input { padding: 8px 10px; }
+  .alignopts { bottom: calc(var(--safe-bottom) + 160px); }
+  .alignbar span { font-size: 14px; }
   .cdot { width: 30px; height: 30px; min-width: 30px; border-radius: 50%; padding: 0; border: 3px solid transparent; }
   .cdot.on { border-color: #fff; }
   .nogo { padding: 6px 8px; font-size: 12px; font-weight: 800; }
@@ -435,6 +519,8 @@
   :global(.tmark .tm-enemy) { border-radius: 50%; background: #3a0b0bdd; }
   :global(.plabel .shell) { vertical-align: -2px; }
   :global(.tmark .tm-shell) { background: #0b1d3a; }
+  :global(.fhandle) { width: 26px; height: 26px; border-radius: 50%; background: #e3b341; border: 3px solid #000; box-shadow: 0 0 0 2px #e3b341; cursor: grab; }
+  :global(.fhandle.move) { width: 36px; height: 36px; background: #000c; color: #e3b341; display: grid; place-items: center; font-size: 20px; }
   :global(.pp-muted) { color: var(--muted); font-size: 12px; margin-top: 4px; }
   :global(.pp-del) { margin-top: 8px; padding: 6px 10px; font-size: 13px; width: 100%; }
 </style>

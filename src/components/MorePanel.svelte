@@ -2,10 +2,22 @@
   import QRCode from 'qrcode';
   import { S, persist, toast } from '../lib/store.svelte.js';
   import { t, errText } from '../lib/i18n.js';
-  import { leave, updateProfile } from '../lib/api.js';
+  import { leave, updateProfile, deleteEvent } from '../lib/api.js';
   import { WEB_URL, ROLES, VERSION } from '../lib/config.js';
   import Sheet from './Sheet.svelte';
-  let { onclose, onreplay } = $props();
+  import { currentField, uploadFieldImage } from '../lib/fields.js';
+  let { onclose, onreplay, onalign } = $props();
+  const field = $derived(currentField());
+  let uploading = $state(false);
+  async function pickField(e) {
+    const file = e.currentTarget.files?.[0]; if (!file) return;
+    uploading = true;
+    try {
+      const r = await uploadFieldImage(file);
+      onalign({ ...r, name: file.name.replace(/\.[^.]+$/, '').slice(0, 40) });
+    } catch (er) { toast(errText(er), 'alert'); }
+    uploading = false;
+  }
 
   const s = S.session;
   let withWord = $state(false);
@@ -61,6 +73,23 @@
       <button onclick={() => set('mapStyle', S.mapStyle === 'sat' ? 'osm' : 'sat')}>{t('map_style')}: {S.mapStyle === 'sat' ? t('sat') : t('topo')}</button>
       <button onclick={() => set('lang', S.lang === 'nl' ? 'en' : 'nl')}>{t('language')}: {S.lang.toUpperCase()}</button>
     </div>
+    <div class="fieldbox">
+      <b>{t('field_map')}</b>
+      {#if field}
+        <div class="row">
+          <span class="grow muted small">{field.data.name || t('field_map')}</span>
+          <button onclick={() => onalign({ url: field.data.url, name: field.data.name, corners: field.data.corners })}>{t('field_align')}</button>
+          <button onclick={() => deleteEvent(field.id)}>{t('delete')}</button>
+        </div>
+        <label class="chk"><input type="checkbox" checked={S.field !== 'none'} onchange={(e) => set('field', e.currentTarget.checked ? 'auto' : 'none')} /> {t('field_show')}</label>
+        <input type="range" min="0.2" max="1" step="0.05" value={S.fieldOpacity} oninput={(e) => set('fieldOpacity', +e.currentTarget.value)} style="padding:0;accent-color:var(--gold)" />
+      {:else}
+        <p class="muted small">{t('field_none_yet')}</p>
+      {/if}
+      <label class="upl">{uploading ? t('uploading') : t('field_upload')}
+        <input type="file" accept="image/*" onchange={pickField} disabled={uploading} hidden />
+      </label>
+    </div>
     <button class="wide danger" onclick={doLeave}>{t('leave')}</button>
     <p class="muted small center">ARGUS Volkov v{VERSION}</p>
   {/if}
@@ -81,4 +110,10 @@
   .opts button { font-size: 13px; padding: 10px 6px; }
   .opts button.on { border-color: var(--gold); color: var(--gold); }
   .center { text-align: center; }
+  .fieldbox { margin-top: 14px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+  .fieldbox b { color: var(--gold); text-transform: uppercase; letter-spacing: .08em; font-size: 13px; }
+  .fieldbox .row { margin-top: 8px; }
+  .fieldbox .row button { padding: 8px 10px; font-size: 13px; }
+  .upl { display: block; text-align: center; margin: 10px 0 0; padding: 12px; border: 1px dashed var(--gold); border-radius: 10px; color: var(--gold);
+    text-transform: none; letter-spacing: 0; font-size: 14px; cursor: pointer; }
 </style>

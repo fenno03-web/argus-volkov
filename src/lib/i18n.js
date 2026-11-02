@@ -36,7 +36,8 @@ const D = {
     a_fall_back: 'Terugtrekken', a_push: 'Aanvallen', a_hold: 'Positie houden',
     is_hit: 'is geraakt', respawned: 'is terug in het spel',
     r_rifleman: 'Rifleman', r_leader: 'Leader', r_medic: 'Medic', r_sniper: 'Sniper', r_support: 'Support', r_scout: 'Scout', r_commander: 'Commander', r_pilot: 'Drone pilot',
-    side: 'Kant', code: 'Code', game: 'Spel', version: 'Versie'
+    side: 'Kant', code: 'Code', game: 'Spel', version: 'Versie',
+    field_map: 'Veldkaart', field_show: 'Veldkaart tonen', opacity: 'Doorzichtigheid', field_upload: 'Plattegrond uploaden (foto of screenshot)', field_align: 'Uitlijnen', field_none_yet: 'Nog geen veldkaart voor jullie kant.', align_hint: 'Sleep de hoeken naar de juiste plek, ✥ verschuift alles', uploading: 'Uploaden...'
   },
   en: {
     tagline: 'Live team map for airsoft',
@@ -72,7 +73,8 @@ const D = {
     a_fall_back: 'Fall back', a_push: 'Push', a_hold: 'Hold position',
     is_hit: 'is hit', respawned: 'is back in the game',
     r_rifleman: 'Rifleman', r_leader: 'Leader', r_medic: 'Medic', r_sniper: 'Sniper', r_support: 'Support', r_scout: 'Scout', r_commander: 'Commander', r_pilot: 'Drone pilot',
-    side: 'Side', code: 'Code', game: 'Game', version: 'Version'
+    side: 'Side', code: 'Code', game: 'Game', version: 'Version',
+    field_map: 'Field map', field_show: 'Show field map', opacity: 'Opacity', field_upload: 'Upload field map (photo or screenshot)', field_align: 'Align', field_none_yet: 'No field map for your side yet.', align_hint: 'Drag the corners into place, ✥ moves everything', uploading: 'Uploading...'
   }
 };
 

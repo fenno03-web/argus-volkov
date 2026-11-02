@@ -11,6 +11,8 @@ export const S = $state({
   night: !!saved.night,
   speech: saved.speech !== false,
   eggs: !!saved.eggs,
+  field: saved.field ?? 'auto',   // 'auto' | 'none' | field id
+  fieldOpacity: saved.fieldOpacity ?? 0.85,
   mapStyle: saved.mapStyle || 'sat',
   profile: saved.profile || { name: '', squad: '', role: 'rifleman' },
   session: saved.session || null, // { token, player_id, faction:{id,name,color}, game:{id,code,name,lat,lng} }
@@ -28,7 +30,7 @@ export const S = $state({
 export function persist() {
   try {
     localStorage.setItem(KEY, JSON.stringify({
-      lang: S.lang, night: S.night, speech: S.speech, eggs: S.eggs, mapStyle: S.mapStyle,
+      lang: S.lang, night: S.night, speech: S.speech, eggs: S.eggs, field: S.field, fieldOpacity: S.fieldOpacity, mapStyle: S.mapStyle,
       profile: S.profile, session: S.session
     }));
   } catch { /* storage unavailable */ }
