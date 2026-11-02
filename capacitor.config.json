@@ -1,0 +1,23 @@
+{
+  "appId": "nl.argus.volkov",
+  "appName": "ARGUS Volkov",
+  "webDir": "dist",
+  "backgroundColor": "#0b0d0c",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1200,
+      "backgroundColor": "#0b0d0c",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#0b0d0c"
+    },
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  },
+  "android": {
+    "useLegacyBridge": true
+  }
+}

@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ARGUS Volkov</string>
+    <string name="title_activity_main">ARGUS Volkov</string>
+    <string name="package_name">nl.argus.volkov</string>
+    <string name="custom_url_scheme">nl.argus.volkov</string>
+    <string name="capacitor_background_geolocation_notification_channel_name">Volkov live positie</string>
+</resources>
